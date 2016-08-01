@@ -10,6 +10,7 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'checkstyle'
 apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 ext {
     gradleWrapperVersion = project.gradleWrapperVersion
@@ -67,6 +68,15 @@ task jenkinsTest {
     }
 }
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
 build.dependsOn(jenkinsTest)
 
 if (System.getenv('ARTIFACTORY_CONTEXT_URL')) {
@@ -75,7 +85,10 @@ if (System.getenv('ARTIFACTORY_CONTEXT_URL')) {
             mavenJava(MavenPublication) {
                 pom.withXml {
                     def pomNode = asNode()
-                    pomNode.dependencyManagement.replaceNode {}
+                    // TODO commented due
+                    // > Could not apply withXml() to generated POM
+                    // > replaceNode() can only be used to replace a single node.
+                    // pomNode.dependencyManagement.replaceNode {}
 
                     // simply remove dependencies without a version
                     // version-less dependencies are handled with dependencyManagement
